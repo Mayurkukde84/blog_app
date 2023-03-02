@@ -18,6 +18,8 @@ app.use(cors())
 app.use(morgan('dev'))
 app.use(cookieParser())
 app.use('/api/v1',require('./routes/quoteRoutes'))
+app.use('/api/v1/auth',require('./routes/authRoutes'))
+
 app.use('*',(req,res)=>{
    res.status(404)
    if(req.accepts('html')){
