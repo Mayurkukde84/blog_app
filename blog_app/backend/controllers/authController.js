@@ -110,10 +110,33 @@ const restrictTo = (...roles)=>{
   }
 }
 
+const forgotPassword = asyncHandler(async(req,res,next)=>{
+//1)get email address
+const user = await User.findOne({email:req.body.email})
+if(!user){
+  res.status(404).json({
+    message:'please enter valid email'
+  })
+}
+//2)genrate the random reset token
+const resetToken = user.createPasswordResetToken()
+await user.save({validateBeforeSave:false})
+
+//3)send it tp user's email
+const resetURL = `${req.protocol}://${req.get(
+  "host"
+)}/api/v1/users/resetPassword/${resetToken}`;
+
+const message = `Forot your password? Submit a PATCH request with your new password and
+passwordConfirn to:${resetURL}.\nIf you didn't forgot your password,please
+ignore this email!`;
+})
+
 
 module.exports = {
   signup,
   login,
   protect,
-  restrictTo
+  restrictTo,
+  forgotPassword
 };

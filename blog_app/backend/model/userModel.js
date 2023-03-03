@@ -35,7 +35,9 @@ const userSchema = new mongoose.Schema({
             message:'password and confirmpassword are not same'
         }
     },
-    passwordChangedAt:Date
+    passwordChangedAt:Date,
+    passwordResetToken:String,
+    passwordResetExpires:Date,
 })
 
 userSchema.pre('save', async function (next) {
@@ -51,10 +53,18 @@ return await bcrypt.compare(currentPassword,userPassword)
 }
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp){
     if(this.passwordChangedAt){
-        const changeTimestamp = parseInt(this.passwordChangedAt.getTime()/1000,10)
-        return JWTTimestamp < changeTimestamp
+        const changeTimeStamp = parseInt(this.passwordChangedAt.getTime()/1000,10)
+        return JWTTimestamp < changeTimeStamp
     }
     return false
+}
+
+userSchema.methods.createPasswordResetToken = function(){
+    const resetToken = crypto.randomBytes(64).toString('hex');
+    this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.passwordResetExpires = Date.now() + 10*60*1000
+    return resetToken
+
 }
 
 module.exports = mongoose.model('User',userSchema)
