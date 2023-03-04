@@ -130,6 +130,28 @@ const resetURL = `${req.protocol}://${req.get(
 const message = `Forot your password? Submit a PATCH request with your new password and
 passwordConfirn to:${resetURL}.\nIf you didn't forgot your password,please
 ignore this email!`;
+try {
+  await sendEmail({
+    email: user.email,
+    subject: "Your password reset token (valid for 10min)",
+    message,
+  });
+  res.status(200).json({
+    status: "success",
+    message: "Token sent to email!",
+  });
+} catch (error) {
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+  return next(
+    res
+      .status(500)
+      .json({
+        message: "There was an error sending the email,Try again later!",
+      })
+  );
+}
 })
 
 
