@@ -154,6 +154,44 @@ try {
 }
 })
 
+const resetPassword = asyncHandler(async (req, res, next) => {
+  //1)Get user based token
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  //2)If token has not explained, and there is user, set the new password
+if(!user){
+    return res.status(400).json({message:"Token is invalid or has expired"})
+}
+user.password = req.body.password;
+user.passwordConfirm = req.body.passwordConfirm;
+user.passwordResetToken = undefined;
+user.passwordResetExpires = undefined;
+await user.save();
+  //3)Update changePasswordAt property for user
+
+  //4)Log the user in,sendJWT
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+  const cookieOptions = {
+    expiresIn: new Date(
+      Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    secure: false,
+    httpOnly: true,
+  };
+  res.cookie("jwt", token, cookieOptions);
+  res.status(200).json({
+    status:'success',
+    token
+  })
+});
 
 module.exports = {
   signup,
