@@ -66,5 +66,13 @@ userSchema.methods.createPasswordResetToken = function(){
     return resetToken
 
 }
+userSchema.pre(/^find/,function(next){
+    //this points to be current querry
+    this.find({
+      active:{$ne:false}  //user with active:false not show in all method that use find
+    })
+    next()
+  })
+  
 
 module.exports = mongoose.model('User',userSchema)
