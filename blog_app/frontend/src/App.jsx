@@ -3,7 +3,7 @@ import RegisterPage from './pages/RegisterPage'
 import './App.css'
 const App = () => {
   return (
-    <div>
+    <div className='container-center'>
       <RegisterPage />
     </div>
   )
