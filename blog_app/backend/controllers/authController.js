@@ -69,6 +69,7 @@ let token = jwt.sign({id:user._id},
   res.cookie('jwt',token,cookieOptions)
   res.status(200).json({
   status:'success',
+  user,
   token
 })
 

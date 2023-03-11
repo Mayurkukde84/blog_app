@@ -88,6 +88,7 @@ const RegisterPage = () => {
           value={regiter.pwdConfirm}
         />
         <button type="submit">Submit</button>
+        <p>Already register?please <a href="/login">SignIn</a> </p>
       </form>
     </section>
   );
