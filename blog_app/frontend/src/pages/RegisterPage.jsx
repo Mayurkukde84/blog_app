@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./register.css";
+import { useNavigate } from "react-router-dom";
 const RegisterPage = () => {
+  const navigate = useNavigate()
   const [regiter, setRegister] = useState({
     name: "",
     email: "",
@@ -17,22 +19,35 @@ const RegisterPage = () => {
       };
     });
   };
-  const submitHandler = async(e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    const { name, email, password, pwdConfirm } = regiter;
+    try {
+      const { name, email, password, pwdConfirm } = regiter;
 
-    const res = await fetch("http://localhost:5000/api/v1/auth/signup",{
-        method:'POST',
-        headers:{
-            "Content-Type":'application/json',
+      const res = await fetch("http://localhost:5000/api/v1/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        body:JSON.stringify({
-            name, email, password, passwordConfirm: pwdConfirm
-        })
-    })
+        body: JSON.stringify({
+          username: name,
+          email,
+          password,
+          passwordConfirm: pwdConfirm,
+        }),
+      });
+      const data = await res.json();
+      navigate('/login')
+      console.log(data.message);
+  
+      console.log(data.data.user.username);
+      console.log(data.status);
+      console.log(res.status);
+    } catch (error) {
+      console.log(error)
+    }
 
-    const data = await res.json();
-    console.log(data)
+   
   };
   return (
     <section>
