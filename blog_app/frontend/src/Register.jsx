@@ -61,10 +61,31 @@ const Register = () => {
     }
     try {
       const res = await fetch('http://localhost:5000/api/v1/auth/signup',{
-        headers:""
+        method:"POST",
+        headers:{
+            "Content-Type" :"application/json",
+            withCredentials:true
+        },
+        body:JSON.stringify({
+            email,
+            username:user,
+            password,
+            passwordConfirm:matchPwd,
+
+
+        })
       })  
+console.log(res)
+setSuccess(true)
     } catch (error) {
-        
+        if(!err?.res){
+            setErrMsg('No server response')
+        }else if(err.res?.status === 409){
+            setErrMsg('Username Taken')
+        }else{
+            setErrMsg("Registeration Failed")
+        }
+        errRef.current.focus()
     }
   }
 
