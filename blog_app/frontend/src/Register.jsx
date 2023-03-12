@@ -49,8 +49,37 @@ const Register = () => {
   useEffect(() => {
     setErrMsg("");
   }, [pwd, matchPwd]);
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
+
+    const v1 = USER_REGEX.test(user);
+    const v2 = PWD_REGEX.test(pwd);
+    if(!v1 || !v2){
+        setErrMsg("Invalid Entry")
+        return;
+    }
+    try {
+      const res = await fetch('http://localhost:5000/api/v1/auth/signup',{
+        headers:""
+      })  
+    } catch (error) {
+        
+    }
+  }
+
   return (
-    <section>
+    <>
+    {
+        success ? (
+<section>
+    <h1>Success</h1>
+    <p>
+        <a href="#" >Sign In</a>
+    </p>
+</section>
+        ):(
+            <section>
       <p
         ref={errRef}
         className={errMsg ? "errMsg" : "offscreen"}
@@ -59,7 +88,7 @@ const Register = () => {
         {errMsg}
       </p>
       <h3>Register</h3>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label htmlFor="username">
           Username:
           <span className={validName ? "valid" : "hide"}>
@@ -122,6 +151,7 @@ const Register = () => {
           aria-describedby="pwdnote"
           onFocus={() => setPwdFocus(true)}
           onBlur={() => setPwdFocus(false)}
+          autoComplete='current-password'
         />
         <p
           id="pwdnote"
@@ -152,6 +182,7 @@ const Register = () => {
           aria-describedby="confirmnote"
           onFocus={() => setMatchFocus(true)}
           onBlur={() => setMatchFocus(false)}
+          autoComplete='off'
         />
         <p
           id="confirmnote"
@@ -165,6 +196,11 @@ const Register = () => {
         <p>Sign In</p>
       </form>
     </section>
+        )
+    }
+        
+    
+    </>
   );
 };
 
