@@ -88,7 +88,7 @@ token = req.headers.authorization.split(' ')[1]
  const currentUser = await User.findById(decoded.id)
   if(!currentUser){
     return res.status(401).json({
-      message:'The user blongig to the token doe not exist'
+      message:'The user belongig to the token doe not exist'
     })
   }
   if(currentUser.changedPasswordAfter(decoded.iat)){

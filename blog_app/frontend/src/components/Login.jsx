@@ -1,7 +1,13 @@
-import React, { useState, useRef, useEffect,useContext } from "react";
-import AuthContext from "./context/AuthProvider";
+import React, { useState, useRef, useEffect } from "react";
+import {Link,useNavigate,useLocation} from 'react-router-dom'
+import useAuth  from "../hooks/useAuth";
 const Login = () => {
-    const {setAuth} = useContext(AuthContext)
+  const {setAuth} = useAuth()
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/'
+
   const userRef = useRef();
   const errRef = useRef();
 
@@ -9,7 +15,7 @@ const Login = () => {
   const [pwd, setPwd] = useState("");
   const [errMsg, setErrMsg] = useState("");
 
-  const [success, setSuccess] = useState(false);
+ 
 
   useEffect(() => {
     userRef.current.focus();
@@ -40,11 +46,12 @@ const Login = () => {
           console.log(data);
           const accessToken = data.token
           const roles = data.user.role
-          const username = data.user.username
-          setAuth({accessToken,roles,username})
+          const user = data.user.username
+          setAuth({accessToken,roles,user})
           setEmail('');
           setPwd('');
-          setSuccess(true);
+          
+          navigate(from,{replace:true})
         
     } catch (error) {
         if(!error?.response){
@@ -64,15 +71,7 @@ const Login = () => {
 
   return (
     <>
-      {success ? (
-        <section>
-          <h1>You are logged in!</h1>
-          <br />
-          <p>
-            <a href="#">Go to home</a>
-          </p>
-        </section>
-      ) : (
+    
         <section>
           <p
             ref={errRef}
@@ -107,11 +106,11 @@ const Login = () => {
           <p>
             Need an Account? <br />
             <span className="line">
-              <a href="#">Sign Up</a>
+              <a href="/register">Sign Up</a>
             </span>
           </p>
         </section>
-      )}
+      
     </>
   );
 };
