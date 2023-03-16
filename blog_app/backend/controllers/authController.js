@@ -22,6 +22,13 @@ const signup = asyncHandler(async (req, res) => {
     expiresIn: process.env.JWT_EXPIRES,
   });
 
+  let refreshToken = jwt.sign({id:user._id},
+    process.env.JWT_REFRESH,
+    {
+      expiresIn:process.env.JWT_REFRESH_EXPIRES
+    }
+    )
+
   const cookieOptions = {
     expiresIn: new Date(
       Date.now() + process.env.JWT_EXPIRES * 24 * 60 * 60 * 1000
@@ -29,7 +36,12 @@ const signup = asyncHandler(async (req, res) => {
     secure: false,
     httpOnly: true,
   };
-  res.cookie("jwt", token, cookieOptions);
+  
+  
+    
+  
+    
+  res.cookie("jwt", refreshToken, cookieOptions);
   user.password = undefined;
   res.status(200).json({
     status: "success",
@@ -60,17 +72,26 @@ let token = jwt.sign({id:user._id},
     expiresIn:process.env.JWT_EXPIRES
   }
   )
+let refreshToken = jwt.sign({id:user._id},
+  process.env.JWT_REFRESH,
+  {
+    expiresIn:process.env.JWT_REFRESH_EXPIRES
+  }
+  )
+
+  
 
   const cookieOptions = {
     expiresIn:new Date(Date.now() + process.env.JWT_EXPIRES*24*60*60*1000),
     secure:false,
     httpOnly:true
   }
-  res.cookie('jwt',token,cookieOptions)
+  res.cookie('jwt',refreshToken,cookieOptions)
   res.status(200).json({
   status:'success',
   user,
-  token
+  token,
+  refreshToken
 })
 
 })
@@ -178,16 +199,19 @@ await user.save();
 
   //4)Log the user in,sendJWT
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+    expiresIn: process.env.JWT_EXPIRES,
+  });
+  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES,
   });
   const cookieOptions = {
     expiresIn: new Date(
-      Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_EXPIRES* 24 * 60 * 60 * 1000
     ),
     secure: false,
     httpOnly: true,
   };
-  res.cookie("jwt", token, cookieOptions);
+  res.cookie("jwt", refreshToken, cookieOptions);
   res.status(200).json({
     status:'success',
     token
@@ -208,22 +232,26 @@ const updatePassword = asyncHandler(async(req,res)=>{
   await user.save()
   
   //4)Log user in ,send JWT
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+  const token= jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES,
     });
   
   const cookieOptins={
-      expiresIn: new Date(Date.now() + process.env.JWT_EXPIRES_IN*24*60*60*1000),
+      expiresIn: new Date(Date.now() + process.env.JWT_EXPIRES*24*60*60*1000),
       secure:false,
       httpOnly:true
   }
-  res.cookie('jwt',token,cookieOptins)
+  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES,
+  });
+ 
+  res.cookie('jwt',refreshToken,cookieOptins)
   user.password = undefined
   
     res.status(statusCode).json({
       status:'success',
       token,
-      
+     
       data:{
         user
       }
