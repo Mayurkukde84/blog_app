@@ -8,4 +8,5 @@ router.route('/protect').post(authController.protect)
 router.route('/forgotPassword').post(authController.forgotPassword)
  router.route('/resetPassword/:token').patch(authController.resetPassword)
 router.route('/updateMyPassword').patch(authController.updatePassword)
+router.route('/refresh').get(authController.handleRefreshToken)
 module.exports = router
