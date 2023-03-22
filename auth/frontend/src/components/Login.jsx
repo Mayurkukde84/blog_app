@@ -44,9 +44,9 @@ const Login = () => {
           });
           const data = await res.json();
           console.log(data);
-          const accessToken = data.token
-          const roles = data.user.role
-          const user = data.user.username
+          const accessToken = data?.token
+          const roles = data?.user?.role
+          const user = data?.user?.username
           setAuth({accessToken,roles,user})
           setEmail('');
           setPwd('');
@@ -82,7 +82,7 @@ const Login = () => {
           </p>
           <h1>Sign In</h1>
           <form onSubmit={submitHandler}>
-            <label htmlFor="email">Username:</label>
+            <label htmlFor="email">Email:</label>
             <input
               type="email"
               id="email"

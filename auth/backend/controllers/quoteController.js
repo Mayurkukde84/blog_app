@@ -1,4 +1,5 @@
 const Quote = require("../model/quoteModel");
+const User = require('../model/userModel')
 const asyncHandler = require("express-async-handler");
 
 const createQuote = asyncHandler(async (req, res) => {
@@ -47,9 +48,15 @@ const deleteQuote = asyncHandler(async(req,res)=>{
         
     })
 })
+
+const getAllUser = asyncHandler(async(req,res)=>{
+     const findUser = await User.find({role:"user"}).exec()
+     res.status(200).json(findUser)
+})
 module.exports = {
   createQuote,
   getQuote,
   updateQuote,
-  deleteQuote
+  deleteQuote,
+  getAllUser
 };
