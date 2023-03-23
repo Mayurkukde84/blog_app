@@ -18,6 +18,7 @@ app.use(morgan("dev"));
 app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
 app.use('/api/v1/user',require('./routes/userRoutes'))
+app.use('/api/v1/auth',require('./routes/authController'))
 
 app.use("*", (req, res) => {
   res.status(404);

@@ -1,23 +1,7 @@
 const User = require('../models/userModel')
 const asyncHandler= require('express-async-handler')
 
-const createUser = asyncHandler(async(req,res)=>{
-   const {username,email,password,passwordConfirm,role} = req.body
-    const user = await User.create({
-        username,
-        email,
-        password,
-        passwordConfirm,
-        role
-    })
 
-    res.status(200).json({
-        status:'success',
-        data:{
-            user
-        }
-    })
-})
 
 const getUser = asyncHandler(async(req,res)=>{
     const user = await User.find()
@@ -31,7 +15,7 @@ const getUser = asyncHandler(async(req,res)=>{
 })
 
 const userEdit = asyncHandler(async(req,res)=>{
-    const user = User.findByIdAndUpdate(req.params,req.body,{
+    const user =await User.findByIdAndUpdate(req.params.id,req.body,{
         new:true,
         runValidators:true
     })
@@ -44,14 +28,14 @@ const userEdit = asyncHandler(async(req,res)=>{
 })
 
 const userDelete = asyncHandler(async(req,res)=>{
-    const user = User.findByIdAndDelete(req.params)
+    const user = await User.findByIdAndDelete(req.params.id)
     res.status(200).json({
         status:'success',
         message:'user is deleted'
     })
 })
 module.exports = {
-    createUser,
+  
     getUser,
     userDelete,
     userEdit

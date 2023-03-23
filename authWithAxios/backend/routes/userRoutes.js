@@ -4,7 +4,7 @@ const router = express.Router()
 
 router.route('/')
     .get(userController.getUser)
-    .post(userController.createUser)
+   
 
 router.route('/:id')
     .patch(userController.userEdit)
