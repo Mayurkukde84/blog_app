@@ -6,4 +6,8 @@ router.route('/')
     .get(userController.getUser)
     .post(userController.createUser)
 
+router.route('/:id')
+    .patch(userController.userEdit)
+    .delete(userController.userDelete)
+
 module.exports = router
