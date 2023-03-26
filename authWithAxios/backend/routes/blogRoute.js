@@ -10,3 +10,5 @@ router.route('/:id')
 .get(blogController.getBlogId)
 .delete(blogController.deleteBlog)
 .patch(blogController.updateBlog)
+
+module.exports = router
