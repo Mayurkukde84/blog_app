@@ -22,11 +22,16 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/v1/auth/signup",
-        JSON.stringify({username}),
+       "/api/v1/auth/signup",
+        JSON.stringify({
+          username:username.name,
+          email:username.email,
+          password:username.password,
+          passwordConfirm:username.passwordConfirm
+        }),
         {
           headers: { "Content-Type": "application/json" },
-        
+        withCredentials:true
         }
       );
       console.log(response.data);
@@ -73,6 +78,8 @@ const Register = () => {
         />
         <button type="submit">Submit</button>
       </form>
+      <p>Already Register!</p>
+      <a href="/login" ><span>Sign In</span></a>
     </section>
   );
 };

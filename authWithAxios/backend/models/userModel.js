@@ -10,11 +10,11 @@ const userSchema = new mongoose.Schema({
     required:true
 
   },
-  role:{
+  role:[{
     type:String,
    enum:['user','admin'],
    default:'user'
-  },
+  }],
   email:{
     type:String,
     unique:true,
@@ -63,9 +63,9 @@ userSchema.pre('save',function(next){
   next()
 })
 
-userSchema.pre(/^find/,function(next){
-  this.find({active:{$ne}})
-})
+// userSchema.pre(/^find/,function(next){
+//   this.find({active:{$ne}})
+// })
 
 userSchema.methods.checkPassword =async function(cureentPassword,userPassword){
 return await bcrypt.compare(cureentPassword,userPassword)

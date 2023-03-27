@@ -5,10 +5,14 @@ const jwt = require("jsonwebtoken");
 const { promisify } = require("util");
 
 const signup = asyncHandler(async (req, res) => {
-  const {username} = req.body;
+  const {username,role,email,password,passwordConfirm} = req.body;
 console.log(req.body.name)
   const user = await User.create({
-   username
+    username,
+    role,
+    email,
+    password,
+    passwordConfirm
   });
 
   const token = await jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -36,7 +40,7 @@ console.log(req.body.name)
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
+console.log(req.body)
   if (!email || !password) {
     return res
       .status(400)

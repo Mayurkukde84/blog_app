@@ -8,10 +8,11 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
-
+const corsOption = require('./config/corsOption')
+const credentials = require('./config/credentials')
 app.use(express.json());
-
-app.use(cors())
+app.use(credentials)
+app.use(cors(corsOption))
 app.use(cookieParser());
 
 connectdb();
