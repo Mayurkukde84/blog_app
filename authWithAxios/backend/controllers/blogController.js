@@ -15,7 +15,7 @@ const createBlog = asyncHandler(async (req, res) => {
 });
 
 const getBlog = asyncHandler(async (req, res) => {
-  const blog = await User.find();
+  const blog = await Blog.find();
   res.status(200).json({
     status: "success",
     blog,

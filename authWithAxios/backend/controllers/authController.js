@@ -1,34 +1,41 @@
-const mongoose = require("mongoose");
-const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
+const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const { promisify } = require("util");
-
+const { Decipher } = require("crypto");
 const signup = asyncHandler(async (req, res) => {
-  const {username,role,email,password,passwordConfirm} = req.body;
-console.log(req.body.name)
+  const { username, email, password, passwordConfirm, role } = req.body;
+  const checkDuplicate = await User.findOne({ username }).exec();
+  if (checkDuplicate) {
+    return res
+      .status(400)
+      .json({ message: "This name already exist please use another name" });
+  }
   const user = await User.create({
     username,
-    role,
     email,
     password,
-    passwordConfirm
+    passwordConfirm,
+    role,
+  });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES,
   });
 
-  const token = await jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+  let refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES,
   });
 
   const cookieOptions = {
     expiresIn: new Date(
-      Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_EXPIRES * 24 * 60 * 60 * 1000
     ),
     secure: false,
     httpOnly: true,
   };
-  res.cookie("jwt", token, cookieOptions);
-  user.password = undefined;
 
+  res.cookie("jwt", refreshToken, cookieOptions);
+  user.password = undefined;
   res.status(200).json({
     status: "success",
     token,
@@ -40,39 +47,42 @@ console.log(req.body.name)
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-console.log(req.body)
   if (!email || !password) {
     return res
       .status(400)
-      .json({ message: "please filled login and password" });
+      .json({ message: "please enter your email and password" });
   }
-
   const user = await User.findOne({ email }).select("+password");
-
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "invalid user ,please check your email and password" });
+  }
   if (!user || !(await user.checkPassword(password, user.password))) {
-    res.status(400).json({
-      status: "failed",
-      message: "Incorrect wmail or password",
+    return res.status(401).json({
+      message: "Invalid email and password",
     });
   }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+  let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: '900s',
+  });
+  let refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: '900s',
   });
 
   const cookieOptions = {
     expiresIn: new Date(
-      Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_EXPIRES * 24 * 60 * 60 * 1000
     ),
     secure: false,
     httpOnly: true,
   };
-  res.cookie("jwt", token, cookieOptions);
-  user.password = undefined;
-
+  res.cookie("jwt", refreshToken, cookieOptions);
   res.status(200).json({
     status: "success",
-    token,
     user,
+    token,
+  
   });
 });
 
@@ -83,60 +93,56 @@ const protect = asyncHandler(async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   }
-
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "your are not logged in to get access" });
+    return res.status(401).json({ message: "You must log in" });
   }
+  console.log(token)
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  console.log(decoded);
+  console.log(decoded)
 
   const currentUser = await User.findById(decoded.id);
-
   if (!currentUser) {
     return res.status(401).json({
-      message: "The user belongig to the token does not exist",
+      message: "The user belongig to the token doe not exist",
     });
   }
   if (currentUser.changedPasswordAfter(decoded.iat)) {
-    return res
-      .status(401)
-      .json({
-        message: "User recently changed password ! Please log in again",
-      });
+    return res.status(401).json({
+      message: "User recently changed password ! please log in",
+    });
   }
   req.user = currentUser;
   next();
 });
 
 const restricTo = (...roles) => {
+  console.log(roles,'roles')
   return (req, res, next) => {
+  console.log(req.user.user,'req')
     if (!roles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ message: "You dont not have permission to delete this" });
+      
+      return res.status(403).json({
+        message: "You do not have permision to change",
+      });
     }
     next();
   };
 };
 
 const forgotPassword = asyncHandler(async (req, res, next) => {
+  //1)get email address
   const user = await User.findOne({ email: req.body.email });
-
   if (!user) {
-    return res
-      .status(404)
-      .json({ message: "There is no user with email address" });
+    res.status(404).json({
+      message: "please enter valid email",
+    });
   }
-
+  //2)genrate the random reset token
   const resetToken = user.createPasswordResetToken();
-
   await user.save({ validateBeforeSave: false });
 
+  //3)send it tp user's email
   const resetURL = `${req.protocol}://${req.get(
     "host"
   )}/api/v1/users/resetPassword/${resetToken}`;
@@ -159,83 +165,95 @@ ignore this email!`;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
     return next(
-      res
-        .status(500)
-        .json({
-          message: "There was an error sending the email,Try again later!",
-        })
+      res.status(500).json({
+        message: "There was an error sending the email,Try again later!",
+      })
     );
   }
 });
 
-const resetPassword = asyncHandler(async(req,res,next)=>{
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-
+const resetPassword = asyncHandler(async (req, res, next) => {
+  //1)Get user based token
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
   const user = await User.findOne({
-    passwordResetToken : hashedToken,
-    passwordResetExpires : {$gt:Date.now()}
-  })
-
-  if(!user){
-    return res.status(400).json({message:"Token is invalid or has expired"})
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  //2)If token has not explained, and there is user, set the new password
+  if (!user) {
+    return res.status(400).json({ message: "Token is invalid or has expired" });
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
+  //3)Update changePasswordAt property for user
 
-  const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
-    expiresIn:process.env.JWT_EXPIRES_IN
-  })
+  //4)Log the user in,sendJWT
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES,
+  });
+  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES,
+  });
   const cookieOptions = {
     expiresIn: new Date(
-      Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_EXPIRES * 24 * 60 * 60 * 1000
     ),
     secure: false,
     httpOnly: true,
   };
-  res.cookie("jwt", token, cookieOptions);
+  res.cookie("jwt", refreshToken, cookieOptions);
   res.status(200).json({
-    status:'success',
-    token
-  })
-})
+    status: "success",
+    token,
+  });
+});
 
-const updatePassword = asyncHandler(async(req,res)=>{
+const updatePassword = asyncHandler(async (req, res) => {
   //1)Get user from collection
-  const user = await User.findById(req.user.id).select('+password')
+  const user = await User.findById(req.user.id).select("+password");
   //2)check if posted currrent pasword is correct
-  if(!(await user.checkPassword(req.body.passwordConfirm,user.password))){
-      return res.status(401).json({message:"Your current password is wrong"})
+  if (!(await user.correctPassword(req.body.passwordConfirm, user.password))) {
+    return res.status(401).json({ message: "Your current password is wrong" });
   }
   //3)If so,update password
-  user.password = req.body.password
-  user.passwordConfirm = req.body.passwordConfirm
-  await user.save()
-  
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+
   //4)Log user in ,send JWT
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
-  
-  const cookieOptins={
-      expiresIn: new Date(Date.now() + process.env.JWT_EXPIRES_IN*24*60*60*1000),
-      secure:false,
-      httpOnly:true
-  }
-  res.cookie('jwt',token,cookieOptins)
-  user.password = undefined
-  
-    res.status(statusCode).json({
-      status:'success',
-      token,
-      
-      data:{
-        user
-      }
-    })
-  })
+    expiresIn: process.env.JWT_EXPIRES,
+  });
+
+  const cookieOptins = {
+    expiresIn: new Date(
+      Date.now() + process.env.JWT_EXPIRES * 24 * 60 * 60 * 1000
+    ),
+    secure: false,
+    httpOnly: true,
+  };
+  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES,
+  });
+
+  res.cookie("jwt", refreshToken, cookieOptins);
+  user.password = undefined;
+
+  res.status(statusCode).json({
+    status: "success",
+    token,
+
+    data: {
+      user,
+    },
+  });
+});
 
 module.exports = {
   signup,

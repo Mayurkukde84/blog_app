@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const blogController = require('../controllers/blogController')
+const authController = require('../controllers/authController')
 
 router.route('/')
 .post(blogController.createBlog)

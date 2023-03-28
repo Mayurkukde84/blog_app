@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef ,useContext} from "react";
 import axios from "../api/axios";
 import AuthContext from "../context/AuthProvider";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [userLogin, setUserLogin] = useState({
     email: "",
     password: "",
   });
+  const navigate = useNavigate()
   const {setAuth} = useContext(AuthContext)
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
@@ -43,6 +45,7 @@ const Login = () => {
       const accessToken = response?.data?.token
       const roles = response?.data?.user?.role
       const user = response?.data?.user?.username
+      navigate('/admin')
       setSuccess(true);
       setAuth({user,roles,accessToken})
       console.log(accessToken,roles,userName)

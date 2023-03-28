@@ -10,11 +10,11 @@ const userSchema = new mongoose.Schema({
     required:true
 
   },
-  role:[{
+  role:{
     type:String,
    enum:['user','admin'],
    default:'user'
-  }],
+  },
   email:{
     type:String,
     unique:true,
@@ -71,7 +71,7 @@ userSchema.methods.checkPassword =async function(cureentPassword,userPassword){
 return await bcrypt.compare(cureentPassword,userPassword)
 }
 
-userSchema.methods.changedPassworfAfter = function(JWTTimestamp){
+userSchema.methods.changedPasswordAfter = function(JWTTimestamp){
   if(this.passwordChangedAt){
     const changedTimestamp = parseInt(this.passwordChangedAt.getTime()/1000,10)
     return JWTTimestamp < changedTimestamp
