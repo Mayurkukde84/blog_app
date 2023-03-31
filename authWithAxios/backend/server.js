@@ -19,7 +19,7 @@ connectdb();
 app.use(morgan("dev"));
 app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
-app.use('/refresh',require('./routes/refreshRoute'))
+app.use('/',require('./routes/refreshRoute'))
 app.use('/api/v1/user',require('./routes/userRoutes'))
 app.use('/api/v1/auth',require('./routes/authRoutes'))
 app.use('/api/v1/blog',require('./routes/blogRoute'))

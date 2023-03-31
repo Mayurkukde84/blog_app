@@ -28,7 +28,7 @@ console.log(auth,'auth')
                     prevRequest.headers['Authorization'] = `Bearer ${newToken}`;
                     return axiosPrivate(prevRequest)
                 }
-                return Promise.reject(prevRequest)
+                return Promise.reject(error)
             }
         );
         return ()=>{

@@ -1,6 +1,6 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken')
 const { promisify } = require("util");
 const { Decipher } = require("crypto");
 const signup = asyncHandler(async (req, res) => {
@@ -87,16 +87,19 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const protect = asyncHandler(async (req, res, next) => {
+ 
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
+  if(
+    req.headers.authorization && req.headers.authorization.startsWith('Bearer')
+  ){
+    token = req.headers.authorization.split(' ')[1]
+  } else if(req.cookies.jwt){
+    token = req.cookies.jwt
   }
-  if (!token) {
-    return res.status(401).json({ message: "You must log in" });
-  }
+
+if(!token){
+  return res.status(401).json({message:'Your are not logged in to get access'})
+}
   console.log(token)
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   console.log(decoded)
@@ -117,7 +120,7 @@ const protect = asyncHandler(async (req, res, next) => {
 });
 
 const restricTo = (...roles) => {
-  console.log(roles,'roles')
+
   return (req, res, next) => {
   console.log(req.user.user,'req')
     if (!roles.includes(req.user.role)) {

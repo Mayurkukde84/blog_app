@@ -42,13 +42,17 @@ const Login = () => {
       console.log(response.data);
       console.log(JSON.stringify(response?.data));
       console.log("success");
-      const accessToken = response?.data?.token
+      const token = response?.data?.token
       const roles = response?.data?.user?.role
       const user = response?.data?.user?.username
-      navigate('/admin')
+      setAuth({user,roles,token})
+      
       setSuccess(true);
-      setAuth({user,roles,accessToken})
-      console.log(accessToken,roles,userName)
+      
+      navigate('/admin')
+      console.log(accessToken,roles,userName,token)
+      
+
      
     } catch (err) {
       if (!err?.response) {
