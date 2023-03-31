@@ -113,3 +113,12 @@ button {
    
   display: inline-block;
 }
+li{
+
+list-style-type: none;
+margin-bottom: 18px;
+
+}
+ul{
+  line-height: 15px;
+}

@@ -38,9 +38,11 @@ const Users = () => {
                 <ul>
                     {
                         users.map((user,i)=><li key={i} >
-                            {user?.article}
-                            <br />
-                            {user?.author}
+                       <h4>{user?.author}</h4> 
+                        <br />
+                        <p>{user?.article}</p>   
+                            
+                          
                         </li>)
                     }
                 </ul>
